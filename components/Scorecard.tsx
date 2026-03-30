@@ -28,7 +28,7 @@ export function Scorecard({ scores }: ScorecardProps) {
     <div className="rounded-xl border border-border bg-card p-6">
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <BarChart3 className="h-5 w-5 text-primary" />
+          <BarChart3 className="h-5 w-5 text-primary drop-shadow-[0_0_6px_rgba(34,211,238,0.25)]" />
           <h3 className="font-display text-lg font-bold text-gradient">
             Scorecard
           </h3>
@@ -47,7 +47,6 @@ export function Scorecard({ scores }: ScorecardProps) {
               <span className="text-sm font-medium text-foreground">{dimension}</span>
               <span className="font-mono text-xs text-muted-foreground">{score}/10</span>
             </div>
-
             <ScoreBar score={score} />
             <p className="mt-1 text-xs text-muted-foreground/70">{comment}</p>
           </div>

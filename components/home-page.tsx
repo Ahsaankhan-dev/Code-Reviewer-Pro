@@ -70,7 +70,7 @@ export function HomePage() {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
             </span>
-            <span className="font-mono text-xs text-primary">Next.js + Claude Ready</span>
+            <span className="font-mono text-xs text-primary">Available for work</span>
           </div>
 
           <h1 className="mb-3 font-display text-4xl font-bold tracking-tight md:text-5xl">
