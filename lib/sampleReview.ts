@@ -1,4 +1,4 @@
-import type { ReviewData } from "@/components/ReviewDisplay";
+import type { ReviewData } from "@/lib/types";
 
 export const sampleReview: ReviewData = {
   overview: {

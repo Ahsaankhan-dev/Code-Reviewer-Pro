@@ -1,7 +1,8 @@
 "use client";
 
 import { Scorecard } from "@/components/Scorecard";
-import type { ReviewData } from "@/lib/types";
+import { ReviewData } from "@/lib/types";
+
 
 
 

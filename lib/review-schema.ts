@@ -1,4 +1,4 @@
-import type { ReviewData } from "@/lib/types";
+import { ReviewData } from "@/lib/types";
 
 export function normalizeReviewData(input: unknown): ReviewData | null {
   if (!input || typeof input !== "object") return null;
