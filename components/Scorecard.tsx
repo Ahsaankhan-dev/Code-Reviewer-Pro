@@ -1,4 +1,4 @@
-"use client";
+import { BarChart3 } from "lucide-react";
 
 interface ScorecardProps {
   scores: Record<string, { score: number; comment: string }>;
@@ -27,7 +27,13 @@ export function Scorecard({ scores }: ScorecardProps) {
   return (
     <div className="rounded-xl border border-border bg-card p-6">
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="font-display text-lg font-bold text-gradient">📊 Scorecard</h3>
+        <div className="flex items-center gap-2">
+          <BarChart3 className="h-5 w-5 text-primary" />
+          <h3 className="font-display text-lg font-bold text-gradient">
+            Scorecard
+          </h3>
+        </div>
+
         <div className="flex items-baseline gap-1">
           <span className="font-mono text-2xl font-bold text-primary">{total}</span>
           <span className="font-mono text-sm text-muted-foreground">/{maxTotal}</span>
@@ -41,6 +47,7 @@ export function Scorecard({ scores }: ScorecardProps) {
               <span className="text-sm font-medium text-foreground">{dimension}</span>
               <span className="font-mono text-xs text-muted-foreground">{score}/10</span>
             </div>
+
             <ScoreBar score={score} />
             <p className="mt-1 text-xs text-muted-foreground/70">{comment}</p>
           </div>
