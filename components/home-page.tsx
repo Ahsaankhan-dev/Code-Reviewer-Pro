@@ -6,7 +6,7 @@ import { CodeInput } from "@/components/CodeInput";
 import { ExpertiseBadges } from "@/components/ExpertiseBadges";
 import { ModeSelector } from "@/components/ModeSelector";
 import { ReviewDisplay } from "@/components/ReviewDisplay";
-import type { ReviewData } from "@/lib/review-types";
+import type { ReviewData } from "@/lib/types";
 import { sampleReview } from "@/lib/sampleReview";
 import { toast } from "@/hooks/use-toast";
 
