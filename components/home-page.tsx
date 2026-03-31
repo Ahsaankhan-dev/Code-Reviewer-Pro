@@ -1,43 +1,111 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { CodeInput } from "@/components/CodeInput";
 import { ExpertiseBadges } from "@/components/ExpertiseBadges";
 import { ModeSelector } from "@/components/ModeSelector";
 import { ReviewDisplay } from "@/components/ReviewDisplay";
-import { ReviewData } from "@/lib/types";
 import { toast } from "@/hooks/use-toast";
+import { ReviewData } from "@/lib/types";
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+function isHighDemandError(response: Response | null, data: unknown, error: unknown) {
+  const apiError =
+    data && typeof data === "object" && "error" in data && typeof data.error === "string"
+      ? data.error
+      : "";
+
+  const message = error instanceof Error ? error.message : "";
+
+  const combined = `${apiError} ${message}`;
+
+  return response?.status === 503 || /503|UNAVAILABLE|high demand|try again later/i.test(combined);
+}
 
 export function HomePage() {
   const [code, setCode] = useState("");
   const [mode, setMode] = useState("full_review");
   const [review, setReview] = useState<ReviewData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const [statusMessage, setStatusMessage] = useState("Analyzing code with Claude...");
+
+  const statusRef = useRef<HTMLDivElement | null>(null);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const handleSubmit = async () => {
     if (!code.trim()) return;
 
     setIsLoading(true);
     setReview(null);
+    setRetryCount(0);
+    setStatusMessage("Analyzing code with Claude...");
 
     try {
-      const response = await fetch("/api/review", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ code, mode }),
-      });
+      let retryAttempt = 0;
 
-      const data = await response.json();
+      while (true) {
+        let response: Response | null = null;
+        let data: unknown = null;
 
-      if (!response.ok) {
-        throw new Error(data?.error || "Review failed");
+        try {
+          response = await fetch("/api/review", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ code, mode }),
+          });
+
+          data = await response.json().catch(() => null);
+
+          if (!response.ok) {
+            const apiError =
+              data && typeof data === "object" && "error" in data && typeof data.error === "string"
+                ? data.error
+                : `Review failed with status ${response.status}`;
+
+            throw new Error(apiError);
+          }
+
+          if (!isMountedRef.current) return;
+
+          const nextReview =
+            data && typeof data === "object" && "review" in data ? (data.review as ReviewData) : null;
+
+          setReview(nextReview);
+          setRetryCount(0);
+          setStatusMessage("Review complete.");
+          break;
+        } catch (error) {
+          if (!isHighDemandError(response, data, error)) {
+            throw error;
+          }
+
+          retryAttempt += 1;
+
+          if (!isMountedRef.current) return;
+
+          setRetryCount(retryAttempt);
+          setStatusMessage(`Model is busy. Retrying automatically...`);
+
+          const delay = Math.min(2000 + retryAttempt * 1000, 8000);
+          await sleep(delay);
+
+          if (!isMountedRef.current) return;
+        }
       }
-
-      setReview(data.review);
     } catch (error) {
+      if (!isMountedRef.current) return;
+
       setReview(null);
 
       toast({
@@ -46,9 +114,20 @@ export function HomePage() {
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      if (isMountedRef.current) {
+        setIsLoading(false);
+      }
     }
   };
+
+  useEffect(() => {
+    if (!isLoading && !review) return;
+
+    statusRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }, [isLoading, review]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -68,7 +147,9 @@ export function HomePage() {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
             </span>
-            <span className="truncate font-mono text-[11px] text-primary sm:text-xs">Available for work</span>
+            <span className="truncate font-mono text-[11px] text-primary sm:text-xs">
+              Available for work
+            </span>
           </div>
 
           <h1 className="mb-3 text-[2rem] font-bold leading-tight tracking-tight sm:text-4xl md:text-5xl">
@@ -93,18 +174,35 @@ export function HomePage() {
         </section>
 
         <section className="mb-8">
-          <CodeInput value={code} onChange={setCode} onSubmit={handleSubmit} isLoading={isLoading} />
+          <CodeInput
+            value={code}
+            onChange={setCode}
+            onSubmit={handleSubmit}
+            isLoading={isLoading}
+          />
+
+          <div ref={statusRef} className="mt-4">
+            {isLoading && (
+              <div className="flex min-h-[72px] items-center justify-center gap-3 rounded-2xl border border-primary/20 bg-primary/5 px-4 py-5 text-center">
+                <div className="h-5 w-5 shrink-0 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                <div className="space-y-1">
+                  <div className="font-mono text-sm text-primary">{statusMessage}</div>
+                  {retryCount > 0 && (
+                    <div className="font-mono text-[11px] text-muted-foreground">
+                      Retry attempt: {retryCount}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </section>
 
-        {isLoading && (
-          <div className="mb-8 flex flex-col items-center justify-center gap-3 py-10 text-center sm:flex-row sm:py-12">
-            <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-            <span className="font-mono text-sm text-primary">Analyzing code with Claude...</span>
-          </div>
-        )}
-
         {review && !isLoading && (
-          <section className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <section
+            ref={statusRef}
+            className="animate-in fade-in slide-in-from-bottom-4 duration-500"
+          >
             <div className="mb-4 flex items-center gap-2">
               <div className="h-px flex-1 bg-border" />
               <span className="shrink-0 text-center font-mono text-[10px] uppercase tracking-[0.2em] text-primary sm:text-xs sm:tracking-widest">
