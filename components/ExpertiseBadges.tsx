@@ -62,17 +62,17 @@ const expertise = [
 
 export function ExpertiseBadges() {
   return (
-    <div className="flex flex-wrap justify-center gap-2">
+    <div className="mx-auto flex max-w-md flex-wrap justify-center gap-2 sm:max-w-none sm:gap-2.5">
       {expertise.map((item) => {
         const Icon = item.icon;
 
         return (
           <span
             key={item.label}
-            className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 font-mono text-xs text-muted-foreground transition-all duration-200 ${item.hoverClass}`}
+            className={`inline-flex max-w-full items-center gap-1.5 rounded-full border border-border bg-card px-2.5 py-1.5 text-[10px] text-muted-foreground transition-all duration-200 sm:px-3 sm:py-1 sm:text-xs ${item.hoverClass}`}
           >
-            <Icon className="h-3.5 w-3.5 transition-all duration-200 group-hover:drop-shadow-[0_0_6px_currentColor]" />
-            {item.label}
+            <Icon className="h-3.5 w-3.5 shrink-0 transition-all duration-200" />
+            <span className="whitespace-nowrap font-mono">{item.label}</span>
           </span>
         );
       })}
