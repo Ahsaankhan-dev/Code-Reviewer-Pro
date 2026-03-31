@@ -18,7 +18,6 @@ function isHighDemandError(response: Response | null, data: unknown, error: unkn
       : "";
 
   const message = error instanceof Error ? error.message : "";
-
   const combined = `${apiError} ${message}`;
 
   return response?.status === 503 || /503|UNAVAILABLE|high demand|try again later/i.test(combined);
@@ -32,7 +31,8 @@ export function HomePage() {
   const [retryCount, setRetryCount] = useState(0);
   const [statusMessage, setStatusMessage] = useState("Analyzing code with Claude...");
 
-  const statusRef = useRef<HTMLDivElement | null>(null);
+  const loadingRef = useRef<HTMLDivElement | null>(null);
+  const resultsRef = useRef<HTMLElement | null>(null);
   const isMountedRef = useRef(true);
 
   useEffect(() => {
@@ -95,7 +95,7 @@ export function HomePage() {
           if (!isMountedRef.current) return;
 
           setRetryCount(retryAttempt);
-          setStatusMessage(`Model is busy. Retrying automatically...`);
+          setStatusMessage("Model is busy. Retrying automatically...");
 
           const delay = Math.min(2000 + retryAttempt * 1000, 8000);
           await sleep(delay);
@@ -121,16 +121,27 @@ export function HomePage() {
   };
 
   useEffect(() => {
-    if (!isLoading && !review) return;
+    if (isLoading) {
+      loadingRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+      return;
+    }
 
-    statusRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
+    if (review) {
+      resultsRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
   }, [isLoading, review]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <main
+      className="relative min-h-[100dvh] overflow-x-hidden overflow-y-auto bg-background touch-pan-y"
+      style={{ WebkitOverflowScrolling: "touch" }}
+    >
       <div
         className="pointer-events-none fixed inset-0 opacity-[0.03]"
         style={{
@@ -140,7 +151,7 @@ export function HomePage() {
         }}
       />
 
-      <div className="relative mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-12">
+      <div className="relative mx-auto max-w-5xl px-4 py-6 pb-10 sm:px-6 sm:py-12 sm:pb-16">
         <header className="mb-8 text-center sm:mb-12">
           <div className="mb-4 inline-flex max-w-full items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1.5 sm:px-4">
             <span className="relative flex h-2 w-2 shrink-0">
@@ -181,7 +192,7 @@ export function HomePage() {
             isLoading={isLoading}
           />
 
-          <div ref={statusRef} className="mt-4">
+          <div ref={loadingRef} className="mt-4 scroll-mt-4 sm:scroll-mt-6">
             {isLoading && (
               <div className="flex min-h-[72px] items-center justify-center gap-3 rounded-2xl border border-primary/20 bg-primary/5 px-4 py-5 text-center">
                 <div className="h-5 w-5 shrink-0 animate-spin rounded-full border-2 border-primary border-t-transparent" />
@@ -200,8 +211,8 @@ export function HomePage() {
 
         {review && !isLoading && (
           <section
-            ref={statusRef}
-            className="animate-in fade-in slide-in-from-bottom-4 duration-500"
+            ref={resultsRef}
+            className="scroll-mt-4 animate-in fade-in slide-in-from-bottom-4 duration-500 sm:scroll-mt-6"
           >
             <div className="mb-4 flex items-center gap-2">
               <div className="h-px flex-1 bg-border" />
@@ -220,6 +231,6 @@ export function HomePage() {
           </p>
         </footer>
       </div>
-    </div>
+    </main>
   );
 }

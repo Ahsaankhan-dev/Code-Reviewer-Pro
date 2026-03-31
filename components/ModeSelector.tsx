@@ -191,7 +191,7 @@ export function ModeSelector({ selected, onSelect }: ModeSelectorProps) {
         })}
       </div>
 
-      <div className="hidden sm:grid sm:grid-cols-2 sm:gap-3 lg:flex lg:flex-wrap lg:gap-2">
+      <div className="hidden sm:grid sm:grid-cols-4 sm:gap-2 md:grid-cols-4 md:gap-2 lg:flex lg:flex-wrap lg:gap-2">
         {modes.map((mode) => {
           const Icon = mode.icon;
           const isActive = selected === mode.id;
@@ -202,7 +202,7 @@ export function ModeSelector({ selected, onSelect }: ModeSelectorProps) {
               type="button"
               onClick={() => onSelect(mode.id)}
               className={cn(
-                "group relative flex items-center gap-2 rounded-lg border px-3 py-2 font-mono text-xs transition-all duration-200 sm:min-h-[84px] sm:flex-col sm:items-start sm:justify-center sm:rounded-2xl sm:px-4 sm:py-3 lg:min-h-0 lg:flex-row lg:items-center lg:justify-start lg:rounded-lg lg:px-3 lg:py-2",
+                "group relative overflow-hidden border font-mono text-xs transition-all duration-200 sm:flex sm:min-h-[80px] sm:flex-col sm:items-center sm:justify-center sm:gap-1 sm:rounded-[16px] sm:px-2 sm:py-2 sm:text-center lg:min-h-0 lg:flex-row lg:items-center lg:justify-start lg:rounded-lg lg:px-3 lg:py-2",
                 isActive
                   ? mode.activeCard
                   : cn("border-border bg-card text-muted-foreground", mode.hoverCard),
@@ -210,23 +210,38 @@ export function ModeSelector({ selected, onSelect }: ModeSelectorProps) {
             >
               <div
                 className={cn(
-                  "flex h-8 w-8 items-center justify-center rounded-full border border-border bg-background/70 text-muted-foreground transition-all duration-200 lg:h-auto lg:w-auto lg:border-0 lg:bg-transparent",
+                  "flex shrink-0 items-center justify-center rounded-full border border-border bg-background/70 text-muted-foreground transition-all duration-200 sm:h-8 sm:w-8 lg:h-auto lg:w-auto lg:border-0 lg:bg-transparent",
                   isActive ? mode.activeIcon : mode.hoverIcon,
                 )}
               >
                 <Icon className="h-3.5 w-3.5 transition-all duration-200 group-hover:drop-shadow-[0_0_6px_currentColor]" />
               </div>
 
-              <div className="text-left">
-                <div className="font-medium">{mode.label}</div>
-                <div className="mt-1 hidden max-w-[18ch] text-[11px] leading-4 text-muted-foreground sm:block lg:hidden group-hover:text-current/80">
-                  {mode.desc}
+              <div className="sm:space-y-0.5 sm:text-center lg:text-left">
+                <div className="font-semibold sm:text-[9px] sm:leading-none lg:font-medium lg:text-xs">
+                  <span className="lg:hidden">{mode.shortLabel}</span>
+                  <span className="hidden lg:inline">{mode.label}</span>
+                </div>
+                <div className="sm:block sm:text-[8px] sm:leading-none sm:text-muted-foreground/70 lg:hidden">
+                  {mode.mobileDesc}
                 </div>
               </div>
 
               <span className="pointer-events-none absolute -bottom-8 left-1/2 z-10 hidden -translate-x-1/2 whitespace-nowrap rounded border border-border bg-card px-2 py-1 text-[10px] text-muted-foreground opacity-0 shadow-lg transition-opacity group-hover:opacity-100 lg:block">
                 {mode.desc}
               </span>
+
+              {/* Active glow — sm/md only */}
+              {isActive && (
+                <div className={cn("pointer-events-none absolute inset-0 lg:hidden", mode.glow)} />
+              )}
+
+              {/* Active check badge — sm/md only */}
+              {isActive && (
+                <div className={cn("absolute right-1 top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full border lg:hidden", mode.check)}>
+                  <Check className="h-2 w-2" />
+                </div>
+              )}
             </button>
           );
         })}
